@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "next": "10.0.8",
+    "phe": "^0.6.0",
+    "pokersolver": "jericopulvera/pokersolver#pusoy-dos",
     "react": "17.0.1",
     "react-dom": "17.0.1"
   }

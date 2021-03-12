@@ -1,7 +1,15 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import React from "react";
+import styles from "../styles/Home.module.css";
+import { compareHands, getHandDetails } from "./../lib/pusoy-hand.js";
 
 export default function Home() {
+  React.useEffect(() => {
+    console.log(getHandDetails("AH 2H 3H 4H 5H"));
+    console.log(getHandDetails("AS AD AC AH JD"));
+    console.log(compareHands("AH 2H 3H 4H 5H", "AS AD AC AH JD"));
+  }, []);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -15,7 +23,7 @@ export default function Home() {
         </h1>
 
         <p className={styles.description}>
-          Get started by editing{' '}
+          Get started by editing{" "}
           <code className={styles.code}>pages/index.js</code>
         </p>
 
@@ -56,10 +64,10 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
+          Powered by{" "}
           <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
         </a>
       </footer>
     </div>
-  )
+  );
 }

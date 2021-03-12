@@ -1041,6 +1041,11 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+phe@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/phe/-/phe-0.6.0.tgz#8ca7b9911dbdf880d4b8ffe7f0314b8ccc6ebee8"
+  integrity sha1-jKe5kR29+IDUuP/n8DFLjMxuvug=
+
 picomatch@^2.0.4, picomatch@^2.2.1:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.2.2.tgz#21f333e9b6b8eaff02468f5146ea406d345f4dad"
@@ -1064,6 +1069,10 @@ pnp-webpack-plugin@1.6.4:
   integrity sha512-7Wjy+9E3WwLOEL30D+m8TSTF7qJJUJLONBnwQp0518siuMxUQUbgZwssaFX+QKlZkjHZcw/IpZCt/H0srrntSg==
   dependencies:
     ts-pnp "^1.1.6"
+
+pokersolver@jericopulvera/pokersolver#pusoy-dos:
+  version "2.1.4"
+  resolved "https://codeload.github.com/jericopulvera/pokersolver/tar.gz/244a46be6b99c2aba24a0b0ac1f7b0179fda84ab"
 
 postcss@8.1.7:
   version "8.1.7"
