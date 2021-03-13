@@ -8,6 +8,9 @@
     "start": "next start"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
+    "faunadb": "^4.1.1",
+    "jsonwebtoken": "^8.5.1",
     "next": "10.0.8",
     "phe": "^0.6.0",
     "pokersolver": "jericopulvera/pokersolver#pusoy-dos",
