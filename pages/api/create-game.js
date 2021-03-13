@@ -22,6 +22,7 @@ export default async function (req, res) {
           },
         ],
         latestMove: null,
+        newGame: null,
         moveCount: 0,
         createdAt: new Date().toISOString(),
       },
