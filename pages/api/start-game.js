@@ -81,5 +81,16 @@ export default async function (req, res) {
     return res.status(500).json({ message: "Something went wrong" });
   }
 
-  return res.status(200).json({ message: "Game started" });
+  game = {
+    ...game,
+    players: game.players.map((p) => {
+      if (p.user.id === decodedUserJwt?.id) return p;
+      return {
+        ...p,
+        cards: {},
+      };
+    }),
+  };
+
+  return res.status(200).json(game);
 }

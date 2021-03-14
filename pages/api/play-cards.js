@@ -37,7 +37,7 @@ const updateGame = async ({ game, res, decodedUserJwt, cards }) => {
       })
     );
 
-    return res.status(200).json({ game });
+    return res.status(200).json(game);
   } catch (_) {
     return res.status(500).json({ message: "Something went wrong" });
   }

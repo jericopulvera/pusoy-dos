@@ -35,10 +35,10 @@ export default async function (req, res) {
       if (p.user.id === decodedUserJwt?.id) return p;
       return {
         ...p,
-        cards: [],
+        cards: {},
       };
     }),
   };
 
-  return res.status(200).json({ game });
+  return res.status(200).json(game);
 }
