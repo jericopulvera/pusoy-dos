@@ -26,11 +26,15 @@ export default async function (req, res) {
     return res.status(404).json({ message: "Not Found" });
   }
 
-  const userJoinedTheGame = game.players.find(
+  if (game.players.length === 4) {
+    return res.status(422).json({ message: "Game is full" });
+  }
+
+  const userIsInTheGame = game.players.some(
     (p) => p.user.id === decodedUserJwt.id
   );
 
-  if (userJoinedTheGame) {
+  if (userIsInTheGame) {
     return res.status(422).json({ message: "You already joined the game" });
   }
 
@@ -40,6 +44,7 @@ export default async function (req, res) {
       ...game.players,
       {
         user: decodedUserJwt,
+        cards: {},
       },
     ],
   };

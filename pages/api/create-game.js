@@ -19,15 +19,19 @@ export default async function (req, res) {
         players: [
           {
             user: decodedUserJwt,
+            cards: {},
           },
         ],
-        latestMove: null,
+        status: "waiting",
+        tableHand: {},
         newGame: null,
         moveCount: 0,
+        playerToMove: null,
+        lowestCard: "2d",
         createdAt: new Date().toISOString(),
       },
     })
   );
 
-  return res.status(200).json({ game: game.ref.id, message: "Game created" });
+  return res.status(200).json({ gameId: game.ref.id, message: "Game created" });
 }

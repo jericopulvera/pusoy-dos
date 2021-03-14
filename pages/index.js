@@ -1,7 +1,7 @@
 import Head from "next/head";
 import React from "react";
 import styles from "../styles/Home.module.css";
-import { compareHands, getHandDetails } from "./../lib/pusoy-hand.js";
+import { compareHands, getHandDetails } from "./../lib/pusoy-dos.js";
 
 export default function Home() {
   const [user, setUser] = React.useState(null);

@@ -32,7 +32,7 @@ export default async function (req, res) {
 
   // Verify the password
   if (!bcrypt.compareSync(password, user.data.password)) {
-    return res.status(401).json({ message: "Invalid Credentials." });
+    return res.status(422).json({ message: "Invalid Credentials." });
   }
 
   const token = jwt.sign({ id: user.ref.id, username }, process.env.APP_SECRET);
