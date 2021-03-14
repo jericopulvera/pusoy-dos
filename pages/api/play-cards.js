@@ -1,5 +1,5 @@
 import { q, faunaDbClient } from "../../lib/faunadb";
-import { getHandDetails, compareHands, isValidHand } from "../../lib/pusoy-dos";
+import { compareHands, isValidHand } from "../../lib/pusoy-dos";
 import jwt from "jsonwebtoken";
 
 const getNextPlayerToMove = (players, lastPlayerToMove) => {
@@ -14,7 +14,22 @@ const getNextPlayerToMove = (players, lastPlayerToMove) => {
   return players[lastPlayerToMoveIndex + 1];
 };
 
-const updateGame = async (game, res) => {
+const updateGame = async ({ game, res, decodedUserJwt, cards }) => {
+  if (cards) {
+    // Update cards
+    const player = game.player.find((p) => p.user.id === decodedUserJwt.id);
+    cards.split(" ").forEach((card) => {
+      player.cards[card] = { playedAt: new Date().toISOString() };
+    });
+
+    // If current player cards is used update status to ended
+    if (
+      Object.entries(player.cards).filter((c) => !c[1].playedAt).length === 0
+    ) {
+      game.status = "ended";
+    }
+  }
+
   try {
     await faunaDbClient.query(
       q.Update(q.Ref(q.Collection("games"), req.body.gameId), {
@@ -87,13 +102,12 @@ export default async function (req, res) {
   // If we did a round trip of pass
   if (!cards && game.playerToMove === game.tableHand.userId) {
     game.tableHand = {};
-
-    return updateGame(game, res);
+    return updateGame({ game, res, decodedUserJwt });
   }
 
   // If a player pass
   if (!cards) {
-    return updateGame(game, res);
+    return updateGame({ game, res, decodedUserJwt });
   }
 
   // If table hand is empty can play any cards
