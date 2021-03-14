@@ -96,7 +96,7 @@ export default async function (req, res) {
     return updateGame(game, res);
   }
 
-  // If table hand is empty can drop anything
+  // If table hand is empty can play any cards
   if (Object.keys(game.tableHand).length === 0) {
     game.tableHand = {
       userId: decodedUserJwt.id,
@@ -107,7 +107,7 @@ export default async function (req, res) {
     return updateGame(game);
   }
 
-  // If table hand is not empty can only player cards in higher card in same rank
+  // If table hand is not empty can only play cards in higher card in same rank
   if (compareHands(game.tableHand.cards, cards)) {
     return res.status(403).json({
       message: "Played cards must be a higher card in same combination",
