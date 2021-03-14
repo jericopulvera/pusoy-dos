@@ -41,7 +41,6 @@ export default function Home(props) {
         router.push(`/games/${response.data.gameId}`);
       })
       .catch((error) => {
-        console.log(error);
         toast({
           title: error.data.message,
           position: "top",

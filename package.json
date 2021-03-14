@@ -12,6 +12,7 @@
     "@emotion/react": "^11.1.5",
     "@emotion/styled": "^11.1.5",
     "bcrypt": "^5.0.1",
+    "cardsJS": "^1.1.1",
     "faunadb": "^4.1.1",
     "formik": "^2.2.6",
     "framer-motion": "^3.10.3",

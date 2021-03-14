@@ -39,7 +39,10 @@ export default function LoginForm(props) {
       .post("/api/login", values)
       .then((response) => {
         window.localStorage.setItem("token", response.data.token);
-        setUser(jwtDecode(response.data.token));
+        setUser({
+          ...jwtDecode(response.data.token),
+          jwt: response.data.token,
+        });
       })
       .catch((error) => {
         toast({

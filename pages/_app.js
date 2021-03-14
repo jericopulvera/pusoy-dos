@@ -10,7 +10,7 @@ function MyApp({ Component, pageProps }) {
     const jwt = window.localStorage.getItem("token");
 
     if (jwt) {
-      setUser(jwtDecode(jwt));
+      setUser({ ...jwtDecode(jwt), jwt });
     } else {
       setUser(null);
     }

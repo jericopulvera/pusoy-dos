@@ -29,16 +29,15 @@ export default async function (req, res) {
     return res.status(404).json({ message: "Not Found" });
   }
 
-  game = {
-    ...game,
-    players: game.players.map((p) => {
-      if (p.user.id === decodedUserJwt?.id) return p;
-      return {
-        ...p,
-        cards: {},
-      };
-    }),
-  };
+  // Hide other players cards
+  game.players = game.players.map((p) => {
+    if (p.user.id === decodedUserJwt?.id) return p;
+
+    return {
+      ...p,
+      cards: Object.entries(p.cards).filter((c) => !c[1].playedAt).length,
+    };
+  });
 
   return res.status(200).json(game);
 }

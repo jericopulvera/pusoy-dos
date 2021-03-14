@@ -19,12 +19,15 @@ import axios from "redaxios";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import UserMenu from "../../components/UserMenu";
+import PoolTable from "../../components/PoolTable";
 
-const fetcher = (url) =>
-  axios.get(url).then((response) => {
-    if (response?.data?.data) return response?.data?.data;
-    return response?.data;
-  });
+const fetcher = (url, user) =>
+  axios
+    .get(url, { headers: { Authorization: `Bearer ${user?.jwt}` } })
+    .then((response) => {
+      if (response?.data?.data) return response?.data?.data;
+      return response?.data;
+    });
 
 export default function Home(props) {
   const { user, setUser, loadingUser } = props;
@@ -42,9 +45,12 @@ export default function Home(props) {
       ? window.location.pathname.split("/").pop()
       : "";
 
-  const { data: game, error, mutate, isValidating } = useSWR(
-    `/api/get-game?gameId=${gameId}`,
-    fetcher
+  const { data: game, error, mutate: mutateGame, isValidating } = useSWR(
+    user?.jwt ? `/api/get-game?gameId=${gameId}` : null,
+    (url) => fetcher(url, user),
+    {
+      refreshInterval: 3000,
+    }
   );
 
   const userIsHost = user?.id === game?.user?.id;
@@ -68,7 +74,7 @@ export default function Home(props) {
       )
       .then((response) => {
         setIsCreatingGame(false);
-        mutate(response.data, false);
+        mutateGame(response.data, false);
       })
       .catch((error) => {
         toast({
@@ -98,7 +104,7 @@ export default function Home(props) {
         }
       )
       .then(() => {
-        mutate(
+        mutateGame(
           {
             ...game,
             players: [...game.players, { user, cards: {} }],
@@ -132,6 +138,7 @@ export default function Home(props) {
         justifyContent="center"
         width="100%"
         paddingTop="8"
+        maxWidth="100ch"
       >
         {loadingUser && (
           <Center>
@@ -149,7 +156,7 @@ export default function Home(props) {
           <VStack spacing={4} align="stretch" width="100%">
             <UserMenu user={user} setUser={setUser} />
 
-            {game && !gameIsOngoing && (
+            {game && game?.status === "waiting" && (
               <>
                 <InputGroup flex alignItems="center">
                   <Input
@@ -221,7 +228,34 @@ export default function Home(props) {
               </>
             )}
 
-            {game && gameIsOngoing && <div>LETS GO</div>}
+            {game && game?.status === "ongoing" && (
+              <div>
+                <PoolTable user={user} game={game} mutateGame={mutateGame} />
+              </div>
+            )}
+
+            {game && game?.status === "ended" && (
+              <>
+                <Heading>Players</Heading>
+                <UnorderedList paddingLeft="8">
+                  {game?.players?.map((p) => (
+                    <ListItem
+                      key={p.user.username}
+                      fontSize="xl"
+                      flex
+                      alignItems="center"
+                    >
+                      {p.user.username} &nbsp;
+                      {game?.tableHand?.userId === p?.user?.id && (
+                        <Button colorScheme="green" paddingX="2" height="6">
+                          Winner
+                        </Button>
+                      )}
+                    </ListItem>
+                  ))}
+                </UnorderedList>
+              </>
+            )}
 
             {!game && error ? (
               <Center>
