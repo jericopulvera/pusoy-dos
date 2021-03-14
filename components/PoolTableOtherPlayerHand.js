@@ -14,7 +14,7 @@ export default function PoolTableOtherPlayer(props) {
             <img
               className="card"
               key={`other-card-${player?.user?.id}-${i}`}
-              src="/cards/BLUE_BACK.svg"
+              src="/cards/Blue_Back.svg"
             />
           ))}
         </div>
