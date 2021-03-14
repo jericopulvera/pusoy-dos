@@ -132,6 +132,7 @@ export default async function (req, res) {
   }
 
   // If table hand is not empty can only play cards in higher card in same rank
+  console.log({ cards });
   if (compareHands(game.tableHand.cards, cards)) {
     return res.status(403).json({
       message:

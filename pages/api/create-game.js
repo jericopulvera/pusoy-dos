@@ -23,7 +23,7 @@ export default async function (req, res) {
           },
         ],
         status: "waiting",
-        tableHand: {},
+        tableHand: null,
         newGame: null,
         moveCount: 0,
         playerToMove: null,
