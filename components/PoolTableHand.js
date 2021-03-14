@@ -17,7 +17,7 @@ export default function PoolTableHand(props) {
             <img
               key={card}
               className="card"
-              src={`/cards/${card}.svg`}
+              src={`/cards/${card.toUpperCase()}.svg`}
               style={{ margin: "4px" }}
             />
           ))}

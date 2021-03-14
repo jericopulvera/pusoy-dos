@@ -62,7 +62,7 @@ export default function PoolTableMainPlayerHand(props) {
               <img
                 key={`my-${card}`}
                 className="card"
-                src={`/cards/${card}.svg`}
+                src={`/cards/${card.toUpperCase()}.svg`}
                 style={{
                   cursor: "pointer",
                   paddingBottom: selectedCards.includes(card) && "10px",
