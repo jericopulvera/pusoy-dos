@@ -1,5 +1,5 @@
 import { q, faunaDbClient } from "../../lib/faunadb";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 const saltRounds = 10;
 
