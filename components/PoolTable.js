@@ -10,14 +10,14 @@ export default function PoolTable(props) {
   const { user, game = {}, mutateGame } = props;
 
   const playerToMove = game?.players?.find(
-    (p) => p.user.id === game?.playerToMove
+    (p) => p.user._id === game?.playerToMove
   )?.user?.username;
 
   const cardsOnTable = game?.tableHand?.cards?.split(" ") || [];
-  const otherPlayers = game?.players?.filter((p) => p.user.id !== user?.id);
+  const otherPlayers = game?.players?.filter((p) => p.user._id !== user?._id);
 
-  const mainPlayer = game?.players?.find((p) => p.user.id === user?.id);
-  const filteredPlayerCards = Object.entries(mainPlayer.cards).filter(
+  const mainPlayer = game?.players?.find((p) => p.user._id === user?._id);
+  const filteredPlayerCards = Object.entries(mainPlayer?.cards || []).filter(
     (c) => !c[1].playedAt
   );
   const mainPlayerCards = filteredPlayerCards
@@ -40,7 +40,10 @@ export default function PoolTable(props) {
         <PoolTableHand cardsOnTable={cardsOnTable} />
 
         {otherPlayers.map((p) => (
-          <PoolTableOtherPlayerHand player={p} key={`other-box-${p.user.id}`} />
+          <PoolTableOtherPlayerHand
+            player={p}
+            key={`other-box-${p.user._id}`}
+          />
         ))}
 
         <PoolTableMainPlayerHand

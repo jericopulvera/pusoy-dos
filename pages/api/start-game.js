@@ -1,4 +1,5 @@
-import { q, faunaDbClient } from "../../lib/faunadb";
+import { connectToDatabase } from "../../lib/mongodb";
+import { ObjectId } from "mongodb";
 import { cards, shuffle, compareHands } from "../../lib/pusoy-dos";
 import jwt from "jsonwebtoken";
 
@@ -13,17 +14,13 @@ export default async function (req, res) {
     return res.status(401).json({ message: "Not Authenticated" });
   }
 
-  let game;
-  try {
-    const queryResponse = await faunaDbClient.query(
-      q.Get(q.Ref(q.Collection("games"), req.body.gameId))
-    );
+  const { gameId } = req.body;
 
-    game = {
-      id: queryResponse.ref.id,
-      ...queryResponse.data,
-    };
-  } catch (error) {
+  const { db } = await connectToDatabase();
+
+  let game = await db.collection("games").findOne({ _id: ObjectId(gameId) });
+
+  if (!game) {
     return res.status(404).json({ message: "Not Found" });
   }
 
@@ -31,7 +28,7 @@ export default async function (req, res) {
     return res.status(403).json({ message: "Game already started" });
   }
 
-  if (game.user.id !== decodedUserJwt.id) {
+  if (game.user._id !== decodedUserJwt._id) {
     return res.status(403).json({ message: "You're not the host" });
   }
 
@@ -60,7 +57,7 @@ export default async function (req, res) {
       ["3c", "3s", "3h", "3d", "4c", "4s", "4h", "4d"].includes(card) &&
       compareHands(game.lowestCard, card)
     ) {
-      game.playerToMove = game.players[playerIndex].user.id;
+      game.playerToMove = game.players[playerIndex].user._id;
       game.lowestCard = card;
     }
 
@@ -70,13 +67,11 @@ export default async function (req, res) {
     }
   }
 
+  game.status = "ongoing";
   try {
-    game.status = "ongoing";
-    await faunaDbClient.query(
-      q.Update(q.Ref(q.Collection("games"), req.body.gameId), {
-        data: game,
-      })
-    );
+    await db
+      .collection("games")
+      .updateOne({ _id: ObjectId(gameId) }, { $set: game });
   } catch (_) {
     return res.status(500).json({ message: "Something went wrong" });
   }
@@ -84,7 +79,7 @@ export default async function (req, res) {
   game = {
     ...game,
     players: game.players.map((p) => {
-      if (p.user.id === decodedUserJwt?.id) return p;
+      if (p.user._id === decodedUserJwt?._id) return p;
       return {
         ...p,
         cards: {},

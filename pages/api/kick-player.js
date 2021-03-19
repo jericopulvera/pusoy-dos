@@ -13,7 +13,7 @@ export default async function (req, res) {
     return res.status(401).json({ message: "Not Authenticated" });
   }
 
-  const { gameId } = req.body;
+  const { gameId, playerId } = req.body;
   const { db } = await connectToDatabase();
 
   let game = await db.collection("games").findOne({ _id: ObjectId(gameId) });
@@ -22,27 +22,24 @@ export default async function (req, res) {
     return res.status(404).json({ message: "Not Found" });
   }
 
-  if (game.players.length === 4) {
-    return res.status(422).json({ message: "Game is full" });
-  }
-
   const userIsInTheGame = game.players.some(
     (p) => p.user._id === decodedUserJwt._id
   );
 
-  if (userIsInTheGame) {
-    return res.status(422).json({ message: "You already joined the game" });
+  if (!userIsInTheGame) {
+    return res.status(422).json({ message: "Player is not in the game" });
+  }
+
+  if (
+    decodedUserJwt?._id !== playerId &&
+    decodedUserJwt?._id !== game.user._id
+  ) {
+    return res.status(422).json({ message: "Forbidden" });
   }
 
   game = {
     ...game,
-    players: [
-      ...game.players,
-      {
-        user: decodedUserJwt,
-        cards: {},
-      },
-    ],
+    players: game.players.filter((p) => p.user._id !== playerId),
   };
 
   try {
@@ -53,5 +50,5 @@ export default async function (req, res) {
     return res.status(500).json({ message: "Something went wrong" });
   }
 
-  return res.status(200).json({ message: "Join Successful" });
+  return res.status(200).json({ message: "Player Kicked Successfully" });
 }

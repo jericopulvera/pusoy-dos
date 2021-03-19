@@ -1,4 +1,4 @@
-import { q, faunaDbClient } from "../../lib/faunadb";
+import { connectToDatabase } from "../../lib/mongodb";
 import jwt from "jsonwebtoken";
 
 export default async function (req, res) {
@@ -12,26 +12,26 @@ export default async function (req, res) {
     return res.status(401).json({ message: "Not Authenticated" });
   }
 
-  const game = await faunaDbClient.query(
-    q.Create(q.Collection("games"), {
-      data: {
-        user: decodedUserJwt,
-        players: [
-          {
-            user: decodedUserJwt,
-            cards: {},
-          },
-        ],
-        status: "waiting",
-        tableHand: null,
-        newGame: null,
-        moveCount: 0,
-        playerToMove: null,
-        lowestCard: "2d",
-        createdAt: new Date().toISOString(),
-      },
-    })
-  );
+  const { db } = await connectToDatabase();
 
-  return res.status(200).json({ gameId: game.ref.id, message: "Game created" });
+  const createResponse = await db.collection("games").insertOne({
+    user: decodedUserJwt,
+    players: [
+      {
+        user: decodedUserJwt,
+        cards: {},
+      },
+    ],
+    status: "waiting",
+    tableHand: null,
+    newGame: null,
+    moveCount: 0,
+    playerToMove: null,
+    lowestCard: "2d",
+    createdAt: new Date().toISOString(),
+  });
+
+  const game = createResponse.ops[0];
+
+  return res.status(200).json({ gameId: game._id, message: "Game created" });
 }

@@ -1,4 +1,5 @@
-import { q, faunaDbClient } from "../../lib/faunadb";
+import { connectToDatabase } from "../../lib/mongodb";
+import { ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
 
 export default async function (req, res) {
@@ -15,23 +16,18 @@ export default async function (req, res) {
     }
   }
 
+  const { db } = await connectToDatabase();
+
   let game;
   try {
-    const queryResponse = await faunaDbClient.query(
-      q.Get(q.Ref(q.Collection("games"), gameId))
-    );
-
-    game = {
-      id: queryResponse.ref.id,
-      ...queryResponse.data,
-    };
-  } catch (error) {
+    game = await db.collection("games").findOne({ _id: ObjectId(gameId) });
+  } catch (_) {
     return res.status(404).json({ message: "Not Found" });
   }
 
   // Hide other players cards
   game.players = game.players.map((p) => {
-    if (p.user.id === decodedUserJwt?.id) return p;
+    if (p.user._id === decodedUserJwt?._id) return p;
 
     return {
       ...p,

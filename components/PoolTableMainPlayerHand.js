@@ -8,7 +8,7 @@ export default function PoolTableMainPlayerHand(props) {
   const [isLoading, setIsLoading] = React.useState(false);
   const toast = useToast();
 
-  const yourMove = game?.playerToMove === user?.id;
+  const yourMove = game?.playerToMove === user?._id;
   const noSelectedCards = selectedCards.length === 0;
   const isFirstMove = game?.moveCount === 0;
 
@@ -22,7 +22,7 @@ export default function PoolTableMainPlayerHand(props) {
         "/api/play-cards",
         {
           cards: selectedCards.length > 0 ? selectedCards.join(" ") : "",
-          gameId: game?.id,
+          gameId: game?._id,
         },
         {
           headers: {

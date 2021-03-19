@@ -1,23 +1,24 @@
-import { q, faunaDbClient } from "../../lib/faunadb";
+import { connectToDatabase } from "../../lib/mongodb";
+import { ObjectId } from "mongodb";
 import { compareHands, isValidHand } from "../../lib/pusoy-dos";
 import jwt from "jsonwebtoken";
 
 const getNextPlayerToMove = (players, lastPlayerToMove) => {
   const lastPlayerToMoveIndex = players.findIndex(
-    (p) => p.user.id === lastPlayerToMove
+    (p) => p.user._id === lastPlayerToMove
   );
 
   if (lastPlayerToMoveIndex === players.length - 1) {
-    return players[0]?.user?.id;
+    return players[0]?.user?._id;
   }
 
-  return players[lastPlayerToMoveIndex + 1].user?.id;
+  return players[lastPlayerToMoveIndex + 1].user?._id;
 };
 
-const updateGame = async ({ game, res, decodedUserJwt, cards }) => {
+const updateGame = async ({ db, game, res, decodedUserJwt, cards }) => {
   if (cards) {
     // Update cards
-    const player = game.players.find((p) => p.user.id === decodedUserJwt.id);
+    const player = game.players.find((p) => p.user._id === decodedUserJwt._id);
     cards.split(" ").forEach((card) => {
       player.cards[card] = { playedAt: new Date().toISOString() };
     });
@@ -31,15 +32,13 @@ const updateGame = async ({ game, res, decodedUserJwt, cards }) => {
   }
 
   try {
-    await faunaDbClient.query(
-      q.Update(q.Ref(q.Collection("games"), game?.id), {
-        data: { ...game },
-      })
-    );
+    await db
+      .collection("games")
+      .updateOne({ _id: ObjectId(game._id) }, { $set: game });
 
     // Hide other players cards
     game.players = game.players.map((p) => {
-      if (p.user.id === decodedUserJwt?.id) return p;
+      if (p.user._id === decodedUserJwt?._id) return p;
 
       return {
         ...p,
@@ -64,17 +63,12 @@ export default async function (req, res) {
     return res.status(401).json({ message: "Not Authenticated" });
   }
 
-  let game;
-  try {
-    const queryResponse = await faunaDbClient.query(
-      q.Get(q.Ref(q.Collection("games"), req.body.gameId))
-    );
+  const { gameId } = req.body;
+  const { db } = await connectToDatabase();
 
-    game = {
-      id: queryResponse.ref.id,
-      ...queryResponse.data,
-    };
-  } catch (error) {
+  let game = await db.collection("games").findOne({ _id: ObjectId(gameId) });
+
+  if (!game) {
     return res.status(404).json({ message: "Not Found" });
   }
 
@@ -83,14 +77,14 @@ export default async function (req, res) {
   }
 
   const userIsInTheGame = game.players.some(
-    (p) => p.user.id === decodedUserJwt.id
+    (p) => p.user._id === decodedUserJwt._id
   );
 
   if (!userIsInTheGame) {
     return res.status(403).json({ message: "Forbidden" });
   }
 
-  if (game.playerToMove !== decodedUserJwt.id) {
+  if (game.playerToMove !== decodedUserJwt._id) {
     return res.status(403).json({ message: "Not your turn yet" });
   }
 
@@ -112,23 +106,23 @@ export default async function (req, res) {
   // If we did a round trip of pass
   if (!cards && game.playerToMove === game.tableHand.userId) {
     game.tableHand = null;
-    return updateGame({ game, res, decodedUserJwt, cards });
+    return updateGame({ db, game, res, decodedUserJwt, cards });
   }
 
   // If a player pass
   if (!cards) {
-    return updateGame({ game, res, decodedUserJwt, cards });
+    return updateGame({ db, game, res, decodedUserJwt, cards });
   }
 
   // If table hand is empty can play any cards
   if (!game?.tableHand) {
     game.tableHand = {
-      userId: decodedUserJwt.id,
+      userId: decodedUserJwt._id,
       createdAt: new Date().toISOString(),
       cards,
     };
 
-    return updateGame({ game, res, decodedUserJwt, cards });
+    return updateGame({ db, game, res, decodedUserJwt, cards });
   }
 
   // If table hand is not empty can only play cards in higher card in same rank
@@ -140,10 +134,10 @@ export default async function (req, res) {
   }
 
   game.tableHand = {
-    userId: decodedUserJwt.id,
+    userId: decodedUserJwt._id,
     createdAt: new Date().toISOString(),
     cards,
   };
 
-  return updateGame({ game, res, decodedUserJwt, cards });
+  return updateGame({ db, game, res, decodedUserJwt, cards });
 }

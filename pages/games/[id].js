@@ -31,7 +31,7 @@ const fetcher = (url, user) =>
 export default function Home(props) {
   const { user, setUser, loadingUser } = props;
   const [startingGame, setIsCreatingGame] = React.useState(false);
-  const [joiningGame, setIsJoiningGame] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const pageLink = typeof window !== "undefined" ? window.location.href : "";
   const { hasCopied, onCopy } = useClipboard(pageLink);
@@ -51,8 +51,10 @@ export default function Home(props) {
     }
   );
 
-  const userIsHost = user?.id === game?.user?.id;
-  const userIsInTheGame = game?.players?.some((p) => p?.user?.id === user?.id);
+  const userIsHost = user?._id === game?.user?._id;
+  const userIsInTheGame = game?.players?.some(
+    (p) => p?.user?._id === user?._id
+  );
 
   function startGame() {
     if (startingGame) return;
@@ -62,7 +64,7 @@ export default function Home(props) {
     axios
       .post(
         "/api/start-game",
-        { gameId: game?.id },
+        { gameId: game?._id },
         {
           headers: {
             Authorization: `Bearer ${window.localStorage.getItem("token")}`,
@@ -86,14 +88,14 @@ export default function Home(props) {
   }
 
   function joinGame() {
-    if (joiningGame) return;
+    if (isLoading) return;
 
-    setIsJoiningGame(true);
+    setIsLoading(true);
 
     axios
       .post(
         "/api/join-game",
-        { gameId: game?.id },
+        { gameId: game?._id },
         {
           headers: {
             Authorization: `Bearer ${window.localStorage.getItem("token")}`,
@@ -108,7 +110,7 @@ export default function Home(props) {
           },
           false
         );
-        setIsJoiningGame(false);
+        setIsLoading(false);
       })
       .catch((error) => {
         toast({
@@ -118,7 +120,44 @@ export default function Home(props) {
           status: "error",
         });
 
-        setIsJoiningGame(false);
+        setIsLoading(false);
+      });
+  }
+
+  function kickPlayer(playerId) {
+    if (isLoading) return;
+
+    setIsLoading(true);
+
+    axios
+      .post(
+        "/api/kick-player",
+        { gameId: game?._id, playerId },
+        {
+          headers: {
+            Authorization: `Bearer ${window.localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then(() => {
+        mutateGame(
+          {
+            ...game,
+            players: [...game.players.filter((p) => p?.user?._id !== playerId)],
+          },
+          false
+        );
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        toast({
+          title: error.data.message,
+          position: "top",
+          isClosable: true,
+          status: "error",
+        });
+
+        setIsLoading(false);
       });
   }
 
@@ -181,7 +220,7 @@ export default function Home(props) {
 
                 {!userIsHost && !userIsInTheGame && (
                   <Button
-                    isLoading={joiningGame}
+                    isLoading={isLoading}
                     marginBottom="2"
                     padding="8"
                     fontSize="20"
@@ -209,13 +248,25 @@ export default function Home(props) {
                       alignItems="center"
                     >
                       {p.user.username} &nbsp;
-                      {userIsHost && user?.id !== p?.user?.id && (
-                        <Button colorScheme="red" paddingX="2" height="6">
+                      {userIsHost && user?._id !== p?.user?._id && (
+                        <Button
+                          colorScheme="red"
+                          paddingX="2"
+                          height="6"
+                          onClick={() => kickPlayer(p?.user?._id)}
+                          isLoading={isLoading}
+                        >
                           Kick
                         </Button>
                       )}
-                      {!userIsHost && user?.id === p?.user?.id && (
-                        <Button colorScheme="red" paddingX="2" height="6">
+                      {!userIsHost && user?._id === p?.user?._id && (
+                        <Button
+                          colorScheme="red"
+                          paddingX="2"
+                          height="6"
+                          onClick={() => kickPlayer(p?.user?._id)}
+                          isLoading={isLoading}
+                        >
                           Leave
                         </Button>
                       )}
@@ -243,7 +294,7 @@ export default function Home(props) {
                       alignItems="center"
                     >
                       {p.user.username} &nbsp;
-                      {game?.tableHand?.userId === p?.user?.id && (
+                      {game?.tableHand?.userId === p?.user?._id && (
                         <Button colorScheme="green" paddingX="2" height="6">
                           Winner
                         </Button>
