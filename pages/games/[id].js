@@ -16,7 +16,6 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import axios from "redaxios";
-import { useRouter } from "next/router";
 import useSWR from "swr";
 import UserMenu from "../../components/UserMenu";
 import PoolTable from "../../components/PoolTable";
@@ -37,7 +36,6 @@ export default function Home(props) {
   const pageLink = typeof window !== "undefined" ? window.location.href : "";
   const { hasCopied, onCopy } = useClipboard(pageLink);
 
-  const router = useRouter();
   const toast = useToast();
 
   const gameId =
@@ -49,13 +47,12 @@ export default function Home(props) {
     user?.jwt ? `/api/get-game?gameId=${gameId}` : null,
     (url) => fetcher(url, user),
     {
-      refreshInterval: 3000,
+      refreshInterval: 1000,
     }
   );
 
   const userIsHost = user?.id === game?.user?.id;
   const userIsInTheGame = game?.players?.some((p) => p?.user?.id === user?.id);
-  const gameIsOngoing = game?.status === "ongoing";
 
   function startGame() {
     if (startingGame) return;
