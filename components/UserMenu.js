@@ -30,7 +30,7 @@ export default function UserMenu(props) {
         </Center>
       )}
 
-      {!isHomePage && (
+      {!isHomePage && !user && (
         <Center>
           <Button width="40" onClick={() => router.push("/")}>
             Login to join the game
