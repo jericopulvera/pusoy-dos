@@ -24,9 +24,11 @@ export default function UserMenu(props) {
             </Button>
           </Heading>
           <br />
-          <Button width="40" onClick={() => router.push("/")}>
-            Go to Home
-          </Button>
+          {!isHomePage && (
+            <Button width="40" onClick={() => router.push("/")}>
+              Go to Home
+            </Button>
+          )}
         </Center>
       )}
 
