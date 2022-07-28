@@ -98,9 +98,9 @@ export default function Home(props) {
             >
               Create Game
             </Button>
-            <Button marginBottom="2" padding="8" fontSize="20">
+            {/* <Button marginBottom="2" padding="8" fontSize="20">
               Winnings and Debts
-            </Button>
+            </Button> */}
           </VStack>
         )}
       </Container>
