@@ -23,12 +23,16 @@ export default function UserMenu(props) {
               Logout
             </Button>
           </Heading>
+
           <br />
-          {!isHomePage && (
-            <Button width="40" onClick={() => router.push("/")}>
-              Go to Home
-            </Button>
-          )}
+        </Center>
+      )}
+
+      {!isHomePage && (
+        <Center>
+          <Button width="40" onClick={() => router.push("/")}>
+            Go to Home
+          </Button>
         </Center>
       )}
 
@@ -39,6 +43,7 @@ export default function UserMenu(props) {
           </Button>
         </Center>
       )}
+
       <Divider />
     </>
   );
