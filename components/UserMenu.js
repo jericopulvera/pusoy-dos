@@ -23,14 +23,17 @@ export default function UserMenu(props) {
               Logout
             </Button>
           </Heading>
-
           <br />
+          <Button width="40" onClick={() => router.push("/")}>
+            Go to Home
+          </Button>
         </Center>
       )}
+
       {!isHomePage && (
         <Center>
           <Button width="40" onClick={() => router.push("/")}>
-            Go to Home
+            Login to join the game
           </Button>
         </Center>
       )}
