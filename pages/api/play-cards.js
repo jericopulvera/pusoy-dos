@@ -1,24 +1,23 @@
-import { connectToDatabase } from "../../lib/mongodb";
-import { ObjectId } from "mongodb";
+import prisma from "../../lib/prisma";
 import { compareHands, isValidHand } from "../../lib/pusoy-dos";
 import jwt from "jsonwebtoken";
 
 const getNextPlayerToMove = (players, lastPlayerToMove) => {
   const lastPlayerToMoveIndex = players.findIndex(
-    (p) => p.user._id === lastPlayerToMove
+    (p) => p.user.id === lastPlayerToMove
   );
 
   if (lastPlayerToMoveIndex === players.length - 1) {
-    return players[0]?.user?._id;
+    return players[0]?.user?.id;
   }
 
-  return players[lastPlayerToMoveIndex + 1].user?._id;
+  return players[lastPlayerToMoveIndex + 1].user?.id;
 };
 
-const updateGame = async ({ db, game, res, decodedUserJwt, cards }) => {
+const updateGame = async ({ game, res, decodedUserJwt, cards }) => {
   if (cards) {
     // Update cards
-    const player = game.players.find((p) => p.user._id === decodedUserJwt._id);
+    const player = game.players.find((p) => p.user.id === decodedUserJwt.id);
     cards.split(" ").forEach((card) => {
       player.cards[card] = { playedAt: new Date().toISOString() };
     });
@@ -32,13 +31,16 @@ const updateGame = async ({ db, game, res, decodedUserJwt, cards }) => {
   }
 
   try {
-    await db
-      .collection("games")
-      .updateOne({ _id: ObjectId(game._id) }, { $set: game });
+    await prisma.game.update({
+      where: {
+        id: game.id,
+      },
+      data: game,
+    });
 
     // Hide other players cards
     game.players = game.players.map((p) => {
-      if (p.user._id === decodedUserJwt?._id) return p;
+      if (p.user.id === decodedUserJwt?.id) return p;
 
       return {
         ...p,
@@ -47,7 +49,8 @@ const updateGame = async ({ db, game, res, decodedUserJwt, cards }) => {
     });
 
     return res.status(200).json(game);
-  } catch (_) {
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -64,9 +67,8 @@ export default async function (req, res) {
   }
 
   const { gameId } = req.body;
-  const { db } = await connectToDatabase();
 
-  let game = await db.collection("games").findOne({ _id: ObjectId(gameId) });
+  let game = await prisma.game.findUnique({ where: { id: gameId } });
 
   if (!game) {
     return res.status(404).json({ message: "Not Found" });
@@ -77,14 +79,14 @@ export default async function (req, res) {
   }
 
   const userIsInTheGame = game.players.some(
-    (p) => p.user._id === decodedUserJwt._id
+    (p) => p.user.id === decodedUserJwt.id
   );
 
   if (!userIsInTheGame) {
     return res.status(403).json({ message: "Forbidden" });
   }
 
-  if (game.playerToMove !== decodedUserJwt._id) {
+  if (game.playerToMove !== decodedUserJwt.id) {
     return res.status(403).json({ message: "Not your turn yet" });
   }
 
@@ -105,24 +107,24 @@ export default async function (req, res) {
 
   // If we did a round trip of pass
   if (!cards && game.playerToMove === game.tableHand.userId) {
-    game.tableHand = null;
-    return updateGame({ db, game, res, decodedUserJwt, cards });
+    game.tableHand = {};
+    return updateGame({ game, res, decodedUserJwt, cards });
   }
 
   // If a player pass
   if (!cards) {
-    return updateGame({ db, game, res, decodedUserJwt, cards });
+    return updateGame({ game, res, decodedUserJwt, cards });
   }
 
   // If table hand is empty can play any cards
-  if (!game?.tableHand) {
+  if (Object.keys(game?.tableHand).length === 0) {
     game.tableHand = {
-      userId: decodedUserJwt._id,
+      userId: decodedUserJwt.id,
       createdAt: new Date().toISOString(),
       cards,
     };
 
-    return updateGame({ db, game, res, decodedUserJwt, cards });
+    return updateGame({ game, res, decodedUserJwt, cards });
   }
 
   // If table hand is not empty can only play cards in higher card in same rank
@@ -134,10 +136,10 @@ export default async function (req, res) {
   }
 
   game.tableHand = {
-    userId: decodedUserJwt._id,
+    userId: decodedUserJwt.id,
     createdAt: new Date().toISOString(),
     cards,
   };
 
-  return updateGame({ db, game, res, decodedUserJwt, cards });
+  return updateGame({ game, res, decodedUserJwt, cards });
 }

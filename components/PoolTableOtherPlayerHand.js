@@ -13,7 +13,7 @@ export default function PoolTableOtherPlayer(props) {
           {[...Array(player?.cards)].map((_, i) => (
             <img
               className="card"
-              key={`other-card-${player?.user?._id}-${i}`}
+              key={`other-card-${player?.user?.id}-${i}`}
               src="/cards/Blue_Back.svg"
             />
           ))}

@@ -1,5 +1,4 @@
-import { connectToDatabase } from "../../lib/mongodb";
-import { ObjectId } from "mongodb";
+import prisma from "../../lib/prisma";
 import jwt from "jsonwebtoken";
 
 export default async function (req, res) {
@@ -16,18 +15,16 @@ export default async function (req, res) {
     }
   }
 
-  const { db } = await connectToDatabase();
-
   let game;
   try {
-    game = await db.collection("games").findOne({ _id: ObjectId(gameId) });
+    game = await prisma.game.findUnique({ where: { id: gameId } });
   } catch (_) {
     return res.status(404).json({ message: "Not Found" });
   }
 
   // Hide other players cards
   game.players = game.players.map((p) => {
-    if (p.user._id === decodedUserJwt?._id) return p;
+    if (p.user.id === decodedUserJwt?.id) return p;
 
     return {
       ...p,

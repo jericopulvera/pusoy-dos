@@ -1,0 +1,30 @@
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+    provider             = "mysql"
+    url                  = env("DATABASE_URL")
+    referentialIntegrity = "prisma"
+}
+
+model User {
+    id       String @id @unique @default(cuid())
+    username String @unique
+    password String
+}
+
+model Game {
+    id           String  @id @unique @default(cuid())
+    user         Json
+    players      Json
+    status       String
+    tableHand    Json?
+    moveCount    Int
+    playerToMove String?
+    lowestCard   String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

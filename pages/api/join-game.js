@@ -1,5 +1,4 @@
-import { connectToDatabase } from "../../lib/mongodb";
-import { ObjectId } from "mongodb";
+import prisma from "../../lib/prisma";
 import jwt from "jsonwebtoken";
 
 export default async function (req, res) {
@@ -14,9 +13,8 @@ export default async function (req, res) {
   }
 
   const { gameId } = req.body;
-  const { db } = await connectToDatabase();
 
-  let game = await db.collection("games").findOne({ _id: ObjectId(gameId) });
+  let game = await prisma.game.findUnique({ where: { id: gameId } });
 
   if (!game) {
     return res.status(404).json({ message: "Not Found" });
@@ -27,7 +25,7 @@ export default async function (req, res) {
   }
 
   const userIsInTheGame = game.players.some(
-    (p) => p.user._id === decodedUserJwt._id
+    (p) => p.user.id === decodedUserJwt.id
   );
 
   if (userIsInTheGame) {
@@ -43,13 +41,19 @@ export default async function (req, res) {
         cards: {},
       },
     ],
+    tableHand: {},
+    playerToMove: undefined,
   };
 
   try {
-    await db
-      .collection("games")
-      .updateOne({ _id: ObjectId(gameId) }, { $set: game });
-  } catch (_) {
+    await prisma.game.update({
+      where: {
+        id: gameId,
+      },
+      data: game,
+    });
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 

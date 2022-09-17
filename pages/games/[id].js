@@ -43,7 +43,12 @@ export default function Home(props) {
       ? window.location.pathname.split("/").pop()
       : "";
 
-  const { data: game, error, mutate: mutateGame, isValidating } = useSWR(
+  const {
+    data: game,
+    error,
+    mutate: mutateGame,
+    isValidating,
+  } = useSWR(
     user?.jwt ? `/api/get-game?gameId=${gameId}` : null,
     (url) => fetcher(url, user),
     {
@@ -51,10 +56,8 @@ export default function Home(props) {
     }
   );
 
-  const userIsHost = user?._id === game?.user?._id;
-  const userIsInTheGame = game?.players?.some(
-    (p) => p?.user?._id === user?._id
-  );
+  const userIsHost = user?.id === game?.user?.id;
+  const userIsInTheGame = game?.players?.some((p) => p?.user?.id === user?.id);
 
   function startGame() {
     if (startingGame) return;
@@ -64,7 +67,7 @@ export default function Home(props) {
     axios
       .post(
         "/api/start-game",
-        { gameId: game?._id },
+        { gameId: game?.id },
         {
           headers: {
             Authorization: `Bearer ${window.localStorage.getItem("token")}`,
@@ -95,7 +98,7 @@ export default function Home(props) {
     axios
       .post(
         "/api/join-game",
-        { gameId: game?._id },
+        { gameId: game?.id },
         {
           headers: {
             Authorization: `Bearer ${window.localStorage.getItem("token")}`,
@@ -132,7 +135,7 @@ export default function Home(props) {
     axios
       .post(
         "/api/kick-player",
-        { gameId: game?._id, playerId },
+        { gameId: game?.id, playerId },
         {
           headers: {
             Authorization: `Bearer ${window.localStorage.getItem("token")}`,
@@ -143,7 +146,7 @@ export default function Home(props) {
         mutateGame(
           {
             ...game,
-            players: [...game.players.filter((p) => p?.user?._id !== playerId)],
+            players: [...game.players.filter((p) => p?.user?.id !== playerId)],
           },
           false
         );
@@ -248,23 +251,23 @@ export default function Home(props) {
                       alignItems="center"
                     >
                       {p.user.username} &nbsp;
-                      {userIsHost && user?._id !== p?.user?._id && (
+                      {userIsHost && user?.id !== p?.user?.id && (
                         <Button
                           colorScheme="red"
                           paddingX="2"
                           height="6"
-                          onClick={() => kickPlayer(p?.user?._id)}
+                          onClick={() => kickPlayer(p?.user?.id)}
                           isLoading={isLoading}
                         >
                           Kick
                         </Button>
                       )}
-                      {!userIsHost && user?._id === p?.user?._id && (
+                      {!userIsHost && user?.id === p?.user?.id && (
                         <Button
                           colorScheme="red"
                           paddingX="2"
                           height="6"
-                          onClick={() => kickPlayer(p?.user?._id)}
+                          onClick={() => kickPlayer(p?.user?.id)}
                           isLoading={isLoading}
                         >
                           Leave
@@ -294,7 +297,7 @@ export default function Home(props) {
                       alignItems="center"
                     >
                       {p.user.username} &nbsp;
-                      {game?.tableHand?.userId === p?.user?._id && (
+                      {game?.tableHand?.userId === p?.user?.id && (
                         <Button colorScheme="green" paddingX="2" height="6">
                           Winner
                         </Button>

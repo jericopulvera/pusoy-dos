@@ -1,4 +1,4 @@
-import { connectToDatabase } from "../../lib/mongodb";
+import prisma from "../../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 const saltRounds = 10;
@@ -14,22 +14,21 @@ export default async function (req, res) {
       .json({ message: "Username and password must be provided." });
   }
 
-  const { db } = await connectToDatabase();
-
   let user;
   try {
     // Fetch the user
-    user = await db.collection("users").findOne({ username });
+    user = await prisma.user.findUnique({ where: { username } });
 
     if (!user) {
-      const insertResponse = await db.collection("users").insertOne({
-        username,
-        password: bcrypt.hashSync(password, saltRounds),
+      user = await prisma.user.create({
+        data: {
+          username,
+          password: bcrypt.hashSync(password, saltRounds),
+        },
       });
-
-      user = insertResponse.ops[0];
     }
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 
@@ -38,6 +37,6 @@ export default async function (req, res) {
     return res.status(422).json({ message: "Invalid Credentials." });
   }
 
-  const token = jwt.sign({ _id: user._id, username }, process.env.APP_SECRET);
+  const token = jwt.sign({ id: user.id, username }, process.env.APP_SECRET);
   return res.status(200).json({ token });
 }
