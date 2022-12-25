@@ -81,6 +81,12 @@ export default function Home(props) {
             <Center>
               <Heading marginBottom="8">Login to Play</Heading>
             </Center>
+            <Center>
+              <Heading marginBottom="8" size="sm">
+                This also serves as registration form if you don't have an
+                account.
+              </Heading>
+            </Center>
             <LoginForm setUser={setUser} />
           </div>
         )}
